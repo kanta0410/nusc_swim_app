@@ -88,17 +88,19 @@ export async function addActivity(formData: FormData) {
 export async function registerStudent(formData: FormData) {
   let name = formData.get('name') as string
   const role = formData.get('role') as string || 'student'
-  const isNewStudent = formData.get('isNewStudent') === 'true'
-
-  if (!name) return { error: '名前を入力してください。' }
+  const grade = formData.get('grade') as string
+  const isNewStudentFromForm = formData.get('isNewStudent') === 'true'
+  const isNewStudent = isNewStudentFromForm || grade === '新入生'
 
   await prisma.student.create({
     data: {
       name,
       role,
-      isNewStudent
+      isNewStudent,
+      grade
     }
   })
+
   revalidatePath('/admin')
   return { success: true }
 }

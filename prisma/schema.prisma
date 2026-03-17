@@ -13,8 +13,10 @@ model Student {
   password       String    @default("nusc")
   role           String    // 'admin' | 'student'
   isNewStudent   Boolean   @default(false)
+  grade          String?   // '1年', '2年', '3年', '4年', '新入生', 'その他'
   absences       Absence[]
 }
+
 
 model Activity {
   id        String    @id @default(uuid())
