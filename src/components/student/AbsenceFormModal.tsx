@@ -14,7 +14,8 @@ interface AbsenceFormModalProps {
   onSubmitted: (absence: Absence) => void;
 }
 
-const REASONS = ["授業", "体調不良", "その他"] as const;
+const REASONS = ["授業", "体調不良", "出席", "その他"] as const;
+
 
 export default function AbsenceFormModal({
   activity,

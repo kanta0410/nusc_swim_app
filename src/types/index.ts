@@ -6,7 +6,9 @@ export interface Student {
   password: string;
   role: Role;
   isNewStudent?: boolean;
+  grade?: string | null;
 }
+
 
 export interface Activity {
   id: string;

@@ -11,19 +11,22 @@ import { addActivity, registerStudent } from '../actions'
 type Student = {
   id: string
   name: string
+  password?: string
   role: string
   isNewStudent?: boolean
   grade?: string | null
 }
 
 
+
 type Absence = {
   id: string
-  type: 'absence' | 'attendance'
+  type: string
   reason: string
   reason_detail: string | null
   student: { name: string }
 }
+
 
 
 type Activity = {

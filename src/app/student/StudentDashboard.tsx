@@ -10,11 +10,12 @@ import { addAbsence, deleteAbsence } from '../actions'
 
 type Absence = {
   id: string
-  type: 'absence' | 'attendance'
+  type: string
   reason: string
   reason_detail: string | null
   student_id: string
 }
+
 
 
 type Activity = {
