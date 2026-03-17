@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id       String    @id @default(uuid())
+  name     String
+  password String    @default("nusc")
+  role     String    // 'admin' | 'student'
+  absences Absence[]
+}
+
+model Activity {
+  id        String    @id @default(uuid())
+  date      DateTime
+  time_slot String    // '2時間'等
+  location  String
+  absences  Absence[]
+}
+
+model Absence {
+  id            String    @id @default(uuid())
+  student_id    String
+  activity_id   String
+  reason        String
+  reason_detail String?
+  created_at    DateTime  @default(now())
+
+  student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
+  activity      Activity  @relation(fields: [activity_id], references: [id], onDelete: Cascade)
+}
