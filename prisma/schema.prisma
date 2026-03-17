@@ -8,11 +8,12 @@ datasource db {
 }
 
 model Student {
-  id       String    @id @default(uuid())
-  name     String
-  password String    @default("nusc")
-  role     String    // 'admin' | 'student'
-  absences Absence[]
+  id             String    @id @default(uuid())
+  name           String
+  password       String    @default("nusc")
+  role           String    // 'admin' | 'student'
+  isNewStudent   Boolean   @default(false)
+  absences       Absence[]
 }
 
 model Activity {
@@ -27,6 +28,7 @@ model Absence {
   id            String    @id @default(uuid())
   student_id    String
   activity_id   String
+  type          String    @default("absence") // 'absence' | 'attendance'
   reason        String
   reason_detail String?
   created_at    DateTime  @default(now())
@@ -34,3 +36,4 @@ model Absence {
   student       Student   @relation(fields: [student_id], references: [id], onDelete: Cascade)
   activity      Activity  @relation(fields: [activity_id], references: [id], onDelete: Cascade)
 }
+

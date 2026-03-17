@@ -23,7 +23,8 @@ export default function AbsenceFormModal({
   onClose,
   onSubmitted,
 }: AbsenceFormModalProps) {
-  const [reason, setReason] = useState<typeof REASONS[number]>(existingAbsence?.reason ?? "授業");
+  const [reason, setReason] = useState<string>(existingAbsence?.reason ?? "授業");
+
   const [detail, setDetail] = useState(existingAbsence?.reason_detail ?? "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
