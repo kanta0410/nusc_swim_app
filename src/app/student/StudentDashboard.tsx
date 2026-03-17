@@ -10,10 +10,12 @@ import { addAbsence, deleteAbsence } from '../actions'
 
 type Absence = {
   id: string
+  type: 'absence' | 'attendance'
   reason: string
   reason_detail: string | null
   student_id: string
 }
+
 
 type Activity = {
   id: string
@@ -23,7 +25,16 @@ type Activity = {
   absences: Absence[]
 }
 
-export default function StudentDashboard({ activities, studentId }: { activities: Activity[], studentId: string }) {
+export default function StudentDashboard({ 
+  activities, 
+  studentId, 
+  isNewStudent 
+}: { 
+  activities: Activity[], 
+  studentId: string,
+  isNewStudent: boolean
+}) {
+
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [reason, setReason] = useState('学校行事')
@@ -31,10 +42,11 @@ export default function StudentDashboard({ activities, studentId }: { activities
 
   const handleDayClick = (day: Date) => {
     setSelectedDate(day)
-    setReason('学校行事')
+    setReason(isNewStudent ? '出席' : '学校行事')
     setCustomReason('')
     setIsDrawerOpen(true)
   }
+
 
   // 未来の活動だけフィルタ（過去は表示用として残しても良いが、今回は表示）
   const upcomingActivities = activities.filter(a => new Date(a.date) >= new Date(new Date().setHours(0,0,0,0)))
@@ -59,10 +71,13 @@ export default function StudentDashboard({ activities, studentId }: { activities
           <div className="has-activity-indicator mt-1" />
         )}
 
-        {/* 自分の欠席がある場合は赤字のラベル表示 */}
+        {/* 自分の登録がある場合はラベル表示 */}
         {myAbsenceCount > 0 && (
-          <div className="absence-badge mt-1">休</div>
+          <div className={`${isNewStudent ? 'bg-emerald-500' : 'absence-badge'} mt-1 text-[10px] px-1 py-0 rounded-sm text-white font-bold`}>
+            {isNewStudent ? '出' : '休'}
+          </div>
         )}
+
       </div>
     )
   }
@@ -119,10 +134,11 @@ export default function StudentDashboard({ activities, studentId }: { activities
                       {format(new Date(act.date), 'M月d日(E)', { locale: ja })}
                     </div>
                     {myAbsence && (
-                      <span className="bg-red-100 text-red-700 text-xs font-bold px-3 py-1.5 rounded-full ring-1 ring-red-200">
-                        欠席登録済
+                      <span className={`${isNewStudent ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-red-100 text-red-700 ring-red-200'} text-[10px] font-bold px-2 py-1 rounded-full ring-1`}>
+                        {isNewStudent ? '出席報告済' : '欠席登録済'}
                       </span>
                     )}
+
                   </div>
                   <div className="text-slate-600 text-sm font-medium">
                     場所: {act.location} / 時間: {act.time_slot}
@@ -164,30 +180,31 @@ export default function StudentDashboard({ activities, studentId }: { activities
 
                         {myAbsence ? (
                           <div className="mt-6 pt-6 border-t border-slate-200">
-                            <div className="font-bold text-red-600 mb-3 flex items-center gap-2">
-                              <span className="w-2 h-2 rounded-full bg-red-400" />
-                              現在この活動は欠席登録されています
+                            <div className={`font-bold ${isNewStudent ? 'text-emerald-600' : 'text-red-600'} mb-3 flex items-center gap-2`}>
+                              <span className={`w-2 h-2 rounded-full ${isNewStudent ? 'bg-emerald-400' : 'bg-red-400'}`} />
+                              現在この活動は{isNewStudent ? '出席' : '欠席'}報告されています
                             </div>
                             <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm mb-4 text-sm font-medium text-slate-700">
                               理由: {myAbsence.reason} {myAbsence.reason_detail && `(${myAbsence.reason_detail})`}
                             </div>
                             <button 
                               onClick={async () => {
-                                if (confirm('欠席登録を取り消しますか？')) {
+                                if (confirm(`${isNewStudent ? '出席' : '欠席'}報告を取り消しますか？`)) {
                                   await deleteAbsence(myAbsence.id)
                                   setIsDrawerOpen(false)
                                 }
                               }}
-                              className="w-full text-red-600 bg-red-50 font-bold border border-red-200 rounded-xl px-4 py-3 min-h-[48px] active:bg-red-100 transition shadow-sm"
+                              className={`w-full ${isNewStudent ? 'text-emerald-600 bg-emerald-50 border-emerald-200' : 'text-red-600 bg-red-50 border-red-200'} font-bold border rounded-xl px-4 py-3 min-h-[48px] active:scale-[0.98] transition shadow-sm`}
                             >
-                              欠席を取り消す
+                              報告を取り消す
                             </button>
                           </div>
                         ) : (
                           <div className="mt-6 pt-6 border-t border-slate-200">
-                            <h3 className="text-lg font-bold mb-4 text-slate-800">欠席を登録する</h3>
+                            <h3 className="text-lg font-bold mb-4 text-slate-800">{isNewStudent ? '出席を報告する' : '欠席を登録する'}</h3>
                             <form action={async (formData) => {
                               formData.append('activity_id', act.id)
+                              formData.append('type', isNewStudent ? 'attendance' : 'absence')
                               await addAbsence(formData)
                               setIsDrawerOpen(false)
                             }} className="space-y-4">
@@ -199,10 +216,19 @@ export default function StudentDashboard({ activities, studentId }: { activities
                                   onChange={(e) => setReason(e.target.value)}
                                   className="w-full border-slate-300 bg-white border rounded-xl px-4 py-3 min-h-[48px] text-base font-medium text-slate-700 shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                                 >
-                                  <option value="学校行事">🎓 学校行事</option>
-                                  <option value="体調不良">🤒 体調不良</option>
-                                  <option value="家庭の用事">🏠 家庭の用事</option>
-                                  <option value="その他">📝 その他</option>
+                                  {isNewStudent ? (
+                                    <>
+                                      <option value="出席">🏊 出席</option>
+                                      <option value="その他">📝 その他</option>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <option value="学校行事">🎓 学校行事</option>
+                                      <option value="体調不良">🤒 体調不良</option>
+                                      <option value="家庭の用事">🏠 家庭の用事</option>
+                                      <option value="その他">📝 その他</option>
+                                    </>
+                                  )}
                                 </select>
                               </div>
 
@@ -215,20 +241,21 @@ export default function StudentDashboard({ activities, studentId }: { activities
                                     value={customReason}
                                     onChange={(e) => setCustomReason(e.target.value)}
                                     className="w-full border-slate-300 border rounded-xl px-4 py-3 min-h-[100px] text-base shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none" 
-                                    placeholder="欠席の理由を具体的に入力してください..."
+                                    placeholder={`${isNewStudent ? '出席' : '欠席'}の理由を具体的に入力してください...`}
                                   />
                                 </div>
                               )}
                               
                               <button 
                                 type="submit" 
-                                className="w-full !mt-6 min-h-[48px] text-lg bg-blue-600 text-white font-bold rounded-xl active:bg-blue-700 shadow-md transition"
+                                className={`w-full !mt-6 min-h-[48px] text-lg ${isNewStudent ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold rounded-xl active:scale-[0.98] shadow-md transition`}
                               >
-                                欠席を確定する
+                                {isNewStudent ? '出席を確定する' : '欠席を確定する'}
                               </button>
                             </form>
                           </div>
                         )}
+
                       </div>
                     )
                   })}

@@ -12,14 +12,17 @@ type Student = {
   id: string
   name: string
   role: string
+  isNewStudent?: boolean
 }
 
 type Absence = {
   id: string
+  type: 'absence' | 'attendance'
   reason: string
   reason_detail: string | null
   student: { name: string }
 }
+
 
 type Activity = {
   id: string
@@ -50,7 +53,8 @@ export default function AdminDashboard({ activities, students }: { activities: A
   
   const renderDayContent = (day: Date) => {
     const actForDay = activities.filter(a => isSameDay(new Date(a.date), day))
-    const totalAbsences = actForDay.reduce((acc, act) => acc + act.absences.length, 0)
+    const totalAbsences = actForDay.reduce((acc, act) => acc + act.absences.filter(ab => ab.type === 'absence').length, 0)
+    const totalAttendances = actForDay.reduce((acc, act) => acc + act.absences.filter(ab => ab.type === 'attendance').length, 0)
 
     return (
       <div className="relative w-full h-full flex flex-col items-center justify-start pt-1">
@@ -58,12 +62,18 @@ export default function AdminDashboard({ activities, students }: { activities: A
         {actForDay.length > 0 && (
           <div className="has-activity-indicator mt-1" />
         )}
-        {totalAbsences > 0 && (
-          <div className="absence-badge mt-1">{totalAbsences}休</div>
-        )}
+        <div className="flex flex-col gap-0.5 mt-0.5">
+          {totalAbsences > 0 && (
+            <div className="absence-badge text-[10px] px-1 py-0">{totalAbsences}休</div>
+          )}
+          {totalAttendances > 0 && (
+            <div className="bg-emerald-500 text-white text-[10px] px-1 py-0 rounded-sm font-bold">{totalAttendances}出</div>
+          )}
+        </div>
       </div>
     )
   }
+
 
   return (
     <div className="space-y-6 pb-20">
@@ -116,10 +126,14 @@ export default function AdminDashboard({ activities, students }: { activities: A
             <tbody className="divide-y divide-slate-100">
               {students.map(s => (
                 <tr key={s.id}>
-                  <td className="py-3 font-medium text-slate-700">{s.name}</td>
+                  <td className="py-3 font-medium text-slate-700">
+                    {s.name}
+                    {s.isNewStudent && <span className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full">新入生</span>}
+                  </td>
                   <td className="py-3 text-slate-500">{s.role === 'admin' ? '管理者' : '生徒'}</td>
                 </tr>
               ))}
+
             </tbody>
           </table>
         </div>
@@ -151,25 +165,46 @@ export default function AdminDashboard({ activities, students }: { activities: A
                       </div>
 
                       <div className="pt-4 border-t border-slate-200">
-                        <div className="font-bold text-sm text-red-600 flex items-center gap-2 mb-2">
-                          <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                          欠席情報 ({act.absences.length}名)
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <div className="font-bold text-[10px] text-red-600 flex items-center gap-1 mb-2 uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
+                              欠席 ({act.absences.filter(ab => ab.type === 'absence').length})
+                            </div>
+                            {act.absences.filter(ab => ab.type === 'absence').length > 0 ? (
+                              <ul className="space-y-1">
+                                {act.absences.filter(ab => ab.type === 'absence').map(ab => (
+                                  <li key={ab.id} className="text-xs bg-white p-2 rounded border border-slate-100 shadow-sm leading-tight">
+                                    <div className="font-bold text-slate-800">{ab.student.name}</div>
+                                    <div className="text-slate-400 mt-0.5 truncate">{ab.reason}</div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-[10px] text-slate-400 font-medium">なし</p>
+                            )}
+                          </div>
+                          <div>
+                            <div className="font-bold text-[10px] text-emerald-600 flex items-center gap-1 mb-2 uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              出席 ({act.absences.filter(ab => ab.type === 'attendance').length})
+                            </div>
+                            {act.absences.filter(ab => ab.type === 'attendance').length > 0 ? (
+                              <ul className="space-y-1">
+                                {act.absences.filter(ab => ab.type === 'attendance').map(ab => (
+                                  <li key={ab.id} className="text-xs bg-white p-2 rounded border border-slate-100 shadow-sm leading-tight">
+                                    <div className="font-bold text-slate-800">{ab.student.name}</div>
+                                    <div className="text-slate-400 mt-0.5 truncate">{ab.reason}</div>
+                                  </li>
+                                ))}
+                              </ul>
+                            ) : (
+                              <p className="text-[10px] text-slate-400 font-medium">なし</p>
+                            )}
+                          </div>
                         </div>
-                        {act.absences.length > 0 ? (
-                          <ul className="space-y-2 mt-2">
-                            {act.absences.map(ab => (
-                              <li key={ab.id} className="text-sm bg-white p-3 rounded-lg border border-slate-100 shadow-sm">
-                                <span className="font-bold text-slate-800">{ab.student.name}</span>
-                                <span className="text-slate-500 ml-2">
-                                  {ab.reason} {ab.reason_detail && `(${ab.reason_detail})`}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-sm text-slate-400">欠席者はいません</p>
-                        )}
                       </div>
+
                     </div>
                   ))
                 )}
@@ -235,6 +270,14 @@ export default function AdminDashboard({ activities, students }: { activities: A
                   />
                   <p className="mt-2 text-xs text-slate-500">※名前比較時はスペースの有無や全角半角を無視します。</p>
                 </div>
+                <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                  <input 
+                    id="isNewStudent" name="isNewStudent" type="checkbox" value="true"
+                    className="w-5 h-5 rounded border-slate-300 text-slate-800 focus:ring-slate-800"
+                  />
+                  <label htmlFor="isNewStudent" className="text-sm font-bold text-slate-700">新入生として登録する</label>
+                </div>
+
                 <button type="submit" className="w-full mt-6 min-h-[48px] text-base bg-slate-800 text-white font-bold rounded-xl active:bg-slate-900 shadow-sm transition">
                   生徒を登録する
                 </button>
