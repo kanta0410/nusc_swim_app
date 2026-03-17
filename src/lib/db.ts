@@ -2,11 +2,11 @@ import { Student, Activity, Absence } from "@/types";
 
 // Simple in-memory store (in production, replace with a real DB)
 let students: Student[] = [
-  { id: "1", name: "管理者太郎", password: "nusc", role: "admin", isNewStudent: false },
-  { id: "2", name: "山田花子", password: "nusc", role: "student", isNewStudent: false },
-  { id: "3", name: "佐藤次郎", password: "nusc", role: "student", isNewStudent: false },
-  { id: "4", name: "鈴木三郎", password: "nusc", role: "student", isNewStudent: false },
-  { id: "5", name: "田中四郎", password: "nusc", role: "student", isNewStudent: false },
+  { id: "1", name: "管理者太郎", password: "nusc", role: "admin" },
+  { id: "2", name: "山田花子", password: "nusc", role: "student" },
+  { id: "3", name: "佐藤次郎", password: "nusc", role: "student" },
+  { id: "4", name: "鈴木三郎", password: "nusc", role: "student" },
+  { id: "5", name: "田中四郎", password: "nusc", role: "student" },
 ];
 
 let activities: Activity[] = [
@@ -38,7 +38,6 @@ let absences: Absence[] = [
     id: "1",
     student_id: "2",
     activity_id: "1",
-    type: "absence",
     reason: "授業",
     reason_detail: "",
     created_at: new Date().toISOString(),
@@ -47,7 +46,6 @@ let absences: Absence[] = [
     id: "2",
     student_id: "3",
     activity_id: "1",
-    type: "absence",
     reason: "体調不良",
     reason_detail: "風邪を引いてしまいました",
     created_at: new Date().toISOString(),
@@ -65,13 +63,12 @@ export const db = {
     students.find((s) => s.name === name),
   getStudentById: (id: string) =>
     students.find((s) => s.id === id),
-  addStudent: (name: string, isNewStudent: boolean = false): Student => {
+  addStudent: (name: string): Student => {
     const student: Student = {
       id: String(nextStudentId++),
       name,
       password: "nusc",
       role: "student",
-      isNewStudent,
     };
     students.push(student);
     return student;
@@ -118,14 +115,12 @@ export const db = {
     student_id: string,
     activity_id: string,
     reason: Absence["reason"],
-    reason_detail: string,
-    type: Absence["type"] = "absence"
+    reason_detail: string
   ): Absence => {
     const absence: Absence = {
       id: String(nextAbsenceId++),
       student_id,
       activity_id,
-      type,
       reason,
       reason_detail,
       created_at: new Date().toISOString(),
@@ -137,4 +132,3 @@ export const db = {
     absences = absences.filter((a) => a.id !== id);
   },
 };
-

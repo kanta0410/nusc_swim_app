@@ -88,19 +88,15 @@ export async function addActivity(formData: FormData) {
 export async function registerStudent(formData: FormData) {
   let name = formData.get('name') as string
   const role = formData.get('role') as string || 'student'
-  const grade = formData.get('grade') as string
-  const isNewStudentFromForm = formData.get('isNewStudent') === 'true'
-  const isNewStudent = isNewStudentFromForm || grade === '新入生'
+
+  if (!name) return { error: '名前を入力してください。' }
 
   await prisma.student.create({
     data: {
       name,
-      role,
-      isNewStudent,
-      grade
+      role
     }
   })
-
   revalidatePath('/admin')
   return { success: true }
 }
@@ -116,7 +112,6 @@ export async function addAbsence(formData: FormData) {
   const activity_id = formData.get('activity_id') as string
   const reason = formData.get('reason') as string
   const reason_detail = formData.get('reason_detail') as string || null
-  const type = (formData.get('type') as string) || 'absence'
 
   if (!activity_id || !reason) {
     return { error: '入力内容が不足しています' }
@@ -130,7 +125,7 @@ export async function addAbsence(formData: FormData) {
   })
 
   if (existing) {
-    return { error: 'すでにこの活動への連絡を登録済みです' }
+    return { error: 'すでにこの活動への欠席を登録済みです' }
   }
 
   await prisma.absence.create({
@@ -138,15 +133,13 @@ export async function addAbsence(formData: FormData) {
       student_id: session.id,
       activity_id,
       reason,
-      reason_detail,
-      type
+      reason_detail
     }
   })
 
   revalidatePath('/student')
   return { success: true }
 }
-
 
 export async function deleteAbsence(absenceId: string) {
   const session = await getSession()
