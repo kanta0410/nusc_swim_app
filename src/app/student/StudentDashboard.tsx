@@ -125,8 +125,11 @@ export default function StudentDashboard({
                 <div 
                   key={act.id} 
                   className={`relative p-5 rounded-xl border transition cursor-pointer active:scale-[0.98] ${
-                    myAbsence ? 'bg-red-50/50 border-red-200' : 'bg-slate-50 border-slate-200 shadow-sm'
+                    myAbsence 
+                      ? (isNewStudent ? 'bg-emerald-50/60 border-emerald-200' : 'bg-red-50/50 border-red-200') 
+                      : 'bg-slate-50 border-slate-200 shadow-sm'
                   }`}
+
                   onClick={() => handleDayClick(new Date(act.date))}
                 >
                   <div className="flex justify-between items-center mb-1">
@@ -134,10 +137,11 @@ export default function StudentDashboard({
                       {format(new Date(act.date), 'M月d日(E)', { locale: ja })}
                     </div>
                     {myAbsence && (
-                      <span className={`${isNewStudent ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-red-100 text-red-700 ring-red-200'} text-[10px] font-bold px-2 py-1 rounded-full ring-1`}>
+                      <span className={`${isNewStudent ? 'bg-emerald-100 text-emerald-700 ring-emerald-200' : 'bg-red-100 text-red-700 ring-red-200'} text-[9px] font-bold px-1.5 py-0.5 rounded-md ring-1`}>
                         {isNewStudent ? '出席報告済' : '欠席登録済'}
                       </span>
                     )}
+
 
                   </div>
                   <div className="text-slate-600 text-sm font-medium">
